@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+<div class="calculator-card bg-white p-6 rounded-3xl shadow-xl transform transition-all duration-300 hover:scale-105 w-full max-w-sm">
+    <div class="mb-4">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Calculadora</h1>
+        <div id="display" class="bg-gray-800 text-white text-right p-4 rounded-lg text-4xl font-light overflow-x-auto whitespace-nowrap">0</div>
+    </div>
+    
+    <div class="grid grid-cols-4 gap-3">
+        <!-- Linha 1 -->
+        <button class="col-span-2 btn-op bg-gray-200 text-gray-800 p-4 rounded-full text-xl hover:bg-gray-300 transition-colors duration-200 shadow-md transform active:scale-95">C</button>
+        <button class="btn-op bg-gray-200 text-gray-800 p-4 rounded-full text-xl hover:bg-gray-300 transition-colors duration-200 shadow-md transform active:scale-95">/</button>
+        <button class="btn-op bg-gray-200 text-gray-800 p-4 rounded-full text-xl hover:bg-gray-300 transition-colors duration-200 shadow-md transform active:scale-95">*</button>
+
+        <!-- Linha 2 -->
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">7</button>
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">8</button>
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">9</button>
+        <button class="btn-op bg-gray-200 text-gray-800 p-4 rounded-full text-xl hover:bg-gray-300 transition-colors duration-200 shadow-md transform active:scale-95">-</button>
+
+        <!-- Linha 3 -->
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">4</button>
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">5</button>
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">6</button>
+        <button class="btn-op bg-gray-200 text-gray-800 p-4 rounded-full text-xl hover:bg-gray-300 transition-colors duration-200 shadow-md transform active:scale-95">+</button>
+
+        <!-- Linha 4 -->
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">1</button>
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">2</button>
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">3</button>
+        <button id="equals" class="row-span-2 btn-op bg-blue-500 text-white p-4 rounded-full text-xl hover:bg-blue-600 transition-colors duration-200 shadow-md transform active:scale-95">=</button>
+
+        <!-- Linha 5 -->
+        <button class="col-span-2 btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">0</button>
+        <button class="btn-num bg-white text-gray-800 p-4 rounded-full text-xl hover:bg-gray-100 transition-colors duration-200 shadow-md transform active:scale-95">.</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const display = document.getElementById('display');
+        const buttons = document.querySelectorAll('button');
+        let currentInput = '';
+        let operator = null;
+        let firstOperand = null;
+        let waitingForSecondOperand = false;
+
+        function updateDisplay() {
+            display.textContent = currentInput || '0';
+        }
+
+        buttons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                const value = event.target.textContent;
+
+                if (event.target.classList.contains('btn-num')) {
+                    if (waitingForSecondOperand) {
+                        currentInput = value;
+                        waitingForSecondOperand = false;
+                    } else {
+                        currentInput = currentInput === '0' ? value : currentInput + value;
+                    }
+                } else if (event.target.classList.contains('btn-op')) {
+                    if (value === 'C') {
+                        currentInput = '0';
+                        firstOperand = null;
+                        operator = null;
+                        waitingForSecondOperand = false;
+                    } else if (value !== '=') {
+                        if (firstOperand === null) {
+                            firstOperand = parseFloat(currentInput);
+                        } else if (operator) {
+                            const result = operate(firstOperand, parseFloat(currentInput), operator);
+                            currentInput = String(result);
+                            firstOperand = result;
+                        }
+                        operator = value;
+                        waitingForSecondOperand = true;
+                    }
+                } else if (event.target.id === 'equals') {
+                    if (firstOperand !== null && operator !== null && !waitingForSecondOperand) {
+                        const result = operate(firstOperand, parseFloat(currentInput), operator);
+                        currentInput = String(result);
+                        firstOperand = null;
+                        operator = null;
+                    }
+                }
+                updateDisplay();
+            });
+        });
+
+        function operate(a, b, op) {
+            switch (op) {
+                case '+':
+                    return a + b;
+                case '-':
+                    return a - b;
+                case '*':
+                    return a * b;
+                case '/':
+                    return a / b;
+                default:
+                    return b;
+            }
+        }
+
+        updateDisplay();
+    });
+</script>
+
+</body>
+</html>
